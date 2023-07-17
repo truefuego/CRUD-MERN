@@ -6,12 +6,14 @@ require("dotenv").config()
 const express = require("express")
 const connectToDb = require("./config/connectToDb")
 const notesController = require("./controllers/notesControllers")
+const cors = require("cors")
 
 // Create the express app
 const app = express()
 
 // Configure express app - To read json
 app.use(express.json())
+app.use(cors())
 
 // Connect To DataBase
 connectToDb()
