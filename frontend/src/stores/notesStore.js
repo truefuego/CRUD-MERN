@@ -1,128 +1,122 @@
-import {create} from 'zustand'
-import axios from 'axios'
+import create from "zustand";
+import axios from "axios";
 
 const notesStore = create((set) => ({
-    notes: [],
+  notes: null,
 
-    createForm: {
-        title: '',
-        body: '',
-    },
+  createForm: {
+    title: "",
+    body: "",
+  },
 
-    toggle: false,
+  updateForm: {
+    _id: null,
+    title: "",
+    body: "",
+  },
 
-    updateForm: {
-        id: null,
-        title: '',
-        body: '',
-    },
+  fetchNotes: async () => {
+    // Fetch the notes
+    const res = await axios.get("http://localhost:3000/notes");
 
-    fetchNotes: async() => {
-        // Fetch Notes 
-        const res = await axios.get('http://localhost:5000/notes')
+    // Set to state
+    set({ notes: res.data.notes });
+  },
 
-        // Set to State
-        set({
-            notes: res.data.notes
-        })
-    }, 
+  updateCreateFormField: (e) => {
+    const { name, value } = e.target;
 
-    handleFormChange: (e) => {
-        const { name, value } = e.target;
-        set((state) => {
-            return {
-                createForm: {
-                    ...state.createForm,
-                    [name]: value,
-                }
-            };
-        })
-    },
+    set((state) => {
+      return {
+        createForm: {
+          ...state.createForm,
+          [name]: value,
+        },
+      };
+    });
+  },
 
-    createNote: async(e) => {
-        e.preventDefault()
-        
-        const { createForm } = notesStore.getState()
-        // Create Note
-        const res = await axios.post('http://localhost:5000/notes',createForm)
-    
-        // Reflect the updated notes
-        set((state) => {
-            return {
-                notes: [...state.notes, res.data.note],
-                createForm: {
-                    title: '',
-                    body: '',
-                }
-            }
-        })
-    },
+  createNote: async (e) => {
+    e.preventDefault();
 
-    deleteNote: async (id) => { 
-        await axios.delete(`http://localhost:5000/notes/${id}`)
+    const { createForm, notes } = notesStore.getState();
+    const res = await axios.post("http://localhost:3000/notes", createForm);
 
-        const {notes} = notesStore.getState()
-        
-        const newNotes = notes.filter(note => {
-          return note._id !== id
-        })
-        set({
-            notes: newNotes
-        })
-    },
+    set({
+      notes: [...notes, res.data.note],
+      createForm: {
+        title: "",
+        body: "",
+      },
+    });
+  },
 
-    handleUpdateChange: (e) => {
-        const {name,value} = e.target
-        set((state) => {
-            return {
-                updateForm: {
-                    ...state.updateForm,
-                    [name]: value,
-                }
-            }
-        })
-    },
+  deleteNote: async (_id) => {
+    // Delete the note
+    const res = await axios.delete(`http://localhost:3000/notes/${_id}`);
+    const { notes } = notesStore.getState();
 
-    toggleUpdate: (note) => {
-        // get the current value
-        const { _id, title, body } = note
-        set({
-            // return {
-                toggle: !notesStore.getState().toggle,
-                updateForm: {
-                    title,
-                    body,
-                    _id,
-                }
-            // }
-        })
-    
-        // set update values
-    },
+    // Update state
+    const newNotes = notes.filter((note) => {
+      return note._id !== _id;
+    });
 
-    updateNote: async(e) => {
-        e.preventDefault()
-        const { 
-            updateForm:{_id, title, body},
-            notes, } = notesStore.getState()
+    set({ notes: newNotes });
+  },
 
-        const res = await axios.put(`http://localhost:5000/notes/${_id}`,{title,body})
-    
-        const newNotes = [...notes]
-        const noteIndex = notes.findIndex((note) => {
-          return note._id === _id
-        })
-        newNotes[noteIndex] = res.data.note
+  handleUpdateFieldChange: (e) => {
+    const { value, name } = e.target;
 
-        set({
-            notes: newNotes,
-            updateForm: {
-                _id: null,
-                title: '',
-                body: '',
-            }
-        })
-    }
-}))
+    set((state) => {
+      return {
+        updateForm: {
+          ...state.updateForm,
+          [name]: value,
+        },
+      };
+    });
+  },
 
-export default notesStore
+  toggleUpdate: ({ _id, title, body }) => {
+    set({
+      updateForm: {
+        title,
+        body,
+        _id,
+      },
+    });
+  },
+
+  updateNote: async (e) => {
+    e.preventDefault();
+
+    const {
+      updateForm: { title, body, _id },
+      notes,
+    } = notesStore.getState();
+
+    // Send the update request
+    const res = await axios.put(`http://localhost:3000/notes/${_id}`, {
+      title,
+      body,
+    });
+
+    // Update state
+    const newNotes = [...notes];
+    const noteIndex = notes.findIndex((note) => {
+      return note._id === _id;
+    });
+    newNotes[noteIndex] = res.data.note;
+
+    set({
+      notes: newNotes,
+      updateForm: {
+        _id: null,
+        title: "",
+        body: "",
+      },
+    });
+  },
+}));
+
+export default notesStore;

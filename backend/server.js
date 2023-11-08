@@ -1,48 +1,43 @@
 // Load env variables
-require("dotenv").config()
+if (process.env.NODE_ENV != "production") {
+  require("dotenv").config();
+}
 
+// Import dependencies
+const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const connectToDb = require("./config/connectToDb");
+const notesController = require("./controllers/notesController");
+const usersController = require("./controllers/usersController");
+const requireAuth = require("./middleware/requireAuth");
 
-//Importing dependencies
-const express = require("express")
-const connectToDb = require("./config/connectToDb")
-const notesController = require("./controllers/notesControllers")
-const cors = require("cors")
+// Create an express app
+const app = express();
 
-// Create the express app
-const app = express()
+// Configure express app
+app.use(express.json());
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 
-// Configure express app - To read json
-app.use(express.json())
-app.use(cors())
+// Connect to database
+connectToDb();
 
-// Connect To DataBase
-connectToDb()
+// Routing
+app.post("/signup", usersController.signup);
+app.post("/login", usersController.login);
+app.get("/logout", usersController.logout);
+app.get("/check-auth", requireAuth, usersController.checkAuth);
+app.get("/notes", notesController.fetchNotes);
+app.get("/notes/:id", notesController.fetchNote);
+app.post("/notes", notesController.createNote);
+app.put("/notes/:id", notesController.updateNote);
+app.delete("/notes/:id", notesController.deleteNote);
 
-// Routing 
-// Everytime the path('/') is hit it will run the callback function
-
-// Retrieving / Read
-app.get('/',(req,res) => {
-    res.json({hello:"World"})
-})
-
-// Read
-// Get all the notes
-app.get('/notes',notesController.FetchNotes)
-
-// Get one note according to its id
-// here ":id" is used to pass the data of a request to url
-// params is used to get data off the link ('/notes/:id')
-app.get('/notes/:id',notesController.FetchNote)
-
-// Creating
-app.post('/notes',notesController.CreateNote)
-
-// Update 
-app.put('/notes/:id',notesController.UpdateNote)
-
-// Delete
-app.delete('/notes/:id',notesController.DeleteNote)
-
-//Start the Sever
-app.listen(process.env.PORT)
+// Start our server
+app.listen(process.env.PORT);

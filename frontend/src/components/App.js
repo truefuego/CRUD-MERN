@@ -1,21 +1,23 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import notesStore from "../stores/notesStore";
 import Notes from "./Notes";
 import UpdateForm from "./UpdateForm";
 import CreateForm from "./CreateForm";
 
 function App() {
-  const store = notesStore()
+  const store = notesStore();
 
+  // Use effect
   useEffect(() => {
-    store.fetchNotes()
-  }, [])
-  
+    store.fetchNotes();
+  }, []);
 
   return (
-    <div>
+    <div className="App">
       <Notes />
-      {!store.toggle ? (<CreateForm />) : (<UpdateForm />)}
+      <UpdateForm />
+      <CreateForm />
     </div>
   );
 }

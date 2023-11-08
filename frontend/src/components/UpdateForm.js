@@ -1,18 +1,26 @@
-import React from 'react'
-import notesStore from '../stores/notesStore'
+import notesStore from "../stores/notesStore";
 
-const UpdateForm = () => {
-    const store = notesStore() 
+export default function UpdateForm() {
+  const store = notesStore();
+
+  if (!store.updateForm._id) return <></>;
+
   return (
     <div>
-        <h2>Update Note </h2>
-        <form onSubmit={store.updateNote}>
-            <input onChange={store.handleUpdateChange} name="title" value={store.updateForm.title}/>
-            <input onChange={store.handleUpdateChange} name="body" value={store.updateForm.body}/>
-            <button type="submit">Update Note</button>
-        </form>
+      <h2>Update note</h2>
+      <form onSubmit={store.updateNote}>
+        <input
+          onChange={store.handleUpdateFieldChange}
+          value={store.updateForm.title}
+          name="title"
+        />
+        <textarea
+          onChange={store.handleUpdateFieldChange}
+          value={store.updateForm.body}
+          name="body"
+        />
+        <button type="submit">Update note</button>
+      </form>
     </div>
-  )
+  );
 }
-
-export default UpdateForm
